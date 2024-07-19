@@ -167,7 +167,18 @@ class PantheonGuzzle extends Client implements
         return !empty($item);
     });
     $uri = $uri->withPath('/' . ltrim(implode('/', $path_parts), '/'));
-    return $request->withUri($uri);
+
+    // This is an experimental hack to get Solr + DDev working.
+    // Some calls to Solr do not include the name of the core in the URL.
+    // I don't know why some do and some don't.
+    // But the errors seem to go away when the core name is included.
+    $path = $uri->getPath();
+   //if the $uri path contains /solr but not /solr/dev then replace /solr with /solr/dev
+    if (!isset($_ENV['PANTHEON_ENVIRONMENT']) && strpos($path, '/solr') !== FALSE && strpos($path, '/solr/dev') === FALSE) {
+       $uri = $uri->withPath(str_replace('/solr', '/solr/dev', $path));
+    }
+    
+    return $request->withUri($uri);    
   }
 
 }
